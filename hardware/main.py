@@ -1,7 +1,11 @@
 # import statements
 from ultrasonic import Ultrasonic
+<<<<<<< HEAD
 import motor
 import time
+=======
+from pir import Pir
+>>>>>>> 70a1fe6d830c1beae32d5e5702b95d002afd8880
 
 
 def dist():
@@ -21,14 +25,24 @@ def scanImg():
 ULTRASONIC_ECHO_PIN = 23
 ULTRASONIC_TRIGGER_PIN = 24
 
+PIR_MOTION_PIN = 14
+
 # used for averaging bin capacity
 usonic_distances = []
 
 if __name__ == "__main__":
     usonic = Ultrasonic(ULTRASONIC_ECHO_PIN, ULTRASONIC_TRIGGER_PIN, 1)
+    pir = Pir(PIR_MOTION_PIN)
     try:
         conn = usonic.connect_db()
         usonic.setup()
+        pir.setup()
+
+        
+
+        # detect motion (trash being placed) and wait for motion to stop (hand removed)
+        pir.wait_for_motion()
+        pir.wait_for_stop()
 
         # Wait till motion is detected to open trapoor
         tolerance = 3
@@ -50,19 +64,19 @@ if __name__ == "__main__":
                 elif time.time() - hand_removed_start >= countdown_required:
                     print("Hand removed for 2 seconds. Running sort logic")
                     # Photo trash
+                    # Do AI stuff
+                    bin = 1
 
                     # Rotate to bin
                     
                     # Open trapdoor
                     
                     # Set ultrasonic bin & measure bin capacity
-                    usonic.bin = 1 # TODO: CHANGE THIS ACCORDINGLY
-                    # NEED TO ADD convertTo% func or something. Right now its just uploading distance.
-                    usonic.update_fill_level(conn, usonic.run())
+                    usonic.bin = bin  # TODO: CHANGE THIS ACCORDINGLY
+                    usonic.update_fill_level(conn, usonic.getCapacity(usonic.run()))
 
                     # Close trapdoor
-                    
-                    # Rotate to original Position
+
     except:
         print("Error in main")
     
