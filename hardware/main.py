@@ -84,6 +84,7 @@ if __name__ == "__main__":
 
                     # Rotate backto original pos
                     rotate_motor.set_angle(0)
+                    time.sleep(1)
 
     except:
         print("Error in main")
