@@ -1,11 +1,8 @@
 # import statements
 from ultrasonic import Ultrasonic
-<<<<<<< HEAD
-import motor
+from motor import servoMotor
 import time
-=======
 from pir import Pir
->>>>>>> 70a1fe6d830c1beae32d5e5702b95d002afd8880
 
 
 def dist():
@@ -27,6 +24,10 @@ ULTRASONIC_TRIGGER_PIN = 24
 
 PIR_MOTION_PIN = 14
 
+# TODO: What should these pins be
+ROTATE_MOTOR_PIN = 17
+DOOR_MOTOR_PIN = 18
+
 # used for averaging bin capacity
 usonic_distances = []
 
@@ -38,7 +39,8 @@ if __name__ == "__main__":
         usonic.setup()
         pir.setup()
 
-        
+        rotate_motor = servoMotor(ROTATE_MOTOR_PIN, 270)
+        door_motor = servoMotor(DOOR_MOTOR_PIN, 180)
 
         # detect motion (trash being placed) and wait for motion to stop (hand removed)
         pir.wait_for_motion()
@@ -68,14 +70,20 @@ if __name__ == "__main__":
                     bin = 1
 
                     # Rotate to bin
+                    rotate_motor.set_angle(90 * bin)
                     
                     # Open trapdoor
+                    door_motor.set_angle(180)
                     
                     # Set ultrasonic bin & measure bin capacity
                     usonic.bin = bin  # TODO: CHANGE THIS ACCORDINGLY
                     usonic.update_fill_level(conn, usonic.getCapacity(usonic.run()))
 
                     # Close trapdoor
+                    door_motor.set_angle(0)
+
+                    # Rotate backto original pos
+                    rotate_motor.set_angle(0)
 
     except:
         print("Error in main")
