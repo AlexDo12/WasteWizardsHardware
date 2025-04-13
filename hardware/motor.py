@@ -1,10 +1,6 @@
 import RPi.GPIO as GPIO
 import time
 
-# Set up GPIO
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
 class servoMotor:
     def __init__(self, servo_pin: int, maxAngle: float):
         self.servo_pin = servo_pin
