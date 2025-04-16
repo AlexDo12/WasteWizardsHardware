@@ -25,14 +25,13 @@ ULTRASONIC_TRIGGER_PIN = 24
 PIR_MOTION_PIN = 14
 
 # TODO: What should these pins be
-SPIN_MOTOR_PIN = 17
-DOOR_MOTOR_PIN = 18
+SPIN_MOTOR_PIN = 22
+DOOR_MOTOR_PIN = 30
 
 # used for averaging bin capacity
 usonic_distances = []
 
 if __name__ == "__main__":
-    try:
         usonic = Ultrasonic(ULTRASONIC_ECHO_PIN, ULTRASONIC_TRIGGER_PIN, 1)
         pir = Pir(PIR_MOTION_PIN)
 
@@ -44,9 +43,11 @@ if __name__ == "__main__":
         door_motor = servoMotor(DOOR_MOTOR_PIN, 180)
 
         while True:
+            time.sleep(2)
             # detect motion (trash being placed) and wait for motion to stop (hand removed)
             pir.wait_for_motion()
             pir.wait_for_stop()
+            time.sleep(1)
 
             print("Hand removed. Running sort logic")
             # Photo trash
@@ -69,10 +70,6 @@ if __name__ == "__main__":
             # Rotate backto original pos
             spin_motor.set_angle(0)
             time.sleep(1)
-
-    except:
-        print("Error in main")
-    
 
 
 # wstwz step by step

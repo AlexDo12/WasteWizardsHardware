@@ -1,14 +1,14 @@
 # Libraries
 import RPi.GPIO as GPIO
 import time
-import psycopg2  # <-- Make sure this is included
+import psycopg2
 
 class Ultrasonic:
-    distances = []
     def __init__(self, echo_pin: int, trigger_pin: int, bin: int):
         self.echo_pin = echo_pin
         self.trigger_pin = trigger_pin
         self.bin = bin
+        self.distances = [0] * 10
 
     def setup(self):
         GPIO.setmode(GPIO.BCM)
@@ -16,7 +16,8 @@ class Ultrasonic:
         GPIO.setup(self.echo_pin, GPIO.IN)
 
     # Connect to our NeonDB database
-    def connect_db():
+    def connect_db(self):
+        print()
         # NeonDB PostgreSQL connection details
         DB_NAME = "neondb"
         DB_USER = "neondb_owner"

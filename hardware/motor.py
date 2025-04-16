@@ -23,11 +23,15 @@ class servoMotor:
             return
 
         try:
+            # self.pwm.start(0)
             self.angle = angle
             duty = self._angle_to_duty_cycle(self.angle)
-            print(f"[Pin {self.servo_pin}] Moving to {angle}° → duty cycle {duty:.2f}%")
             self.pwm.ChangeDutyCycle(duty)
+            time.sleep(.25)
+            self.pwm.ChangeDutyCycle(0)
+            print(f"[Pin {self.servo_pin}] Moving to {angle}° → duty cycle {duty:.2f}%")
             time.sleep(1)
+            # self.pwm.stop()
         except Exception as e:
             print(f"[ERROR] Failed to set angle on pin {self.servo_pin}: {e}")
 
