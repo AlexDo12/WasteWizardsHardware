@@ -27,7 +27,7 @@ class servoMotor:
             self.angle = angle
             duty = self._angle_to_duty_cycle(self.angle)
             self.pwm.ChangeDutyCycle(duty)
-            time.sleep(.25)
+            time.sleep(.5)
             self.pwm.ChangeDutyCycle(0)
             print(f"[Pin {self.servo_pin}] Moving to {angle}° → duty cycle {duty:.2f}%")
             time.sleep(1)

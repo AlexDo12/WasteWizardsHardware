@@ -4,17 +4,6 @@ from motor import servoMotor
 import time
 from pir import Pir
 
-
-def dist():
-    distance = 0
-    return dist
-
-def rotate():
-    a = 0
-
-def trapdoor():
-    a = 0
-
 def scanImg():
     classification = ""
     return classification
@@ -25,8 +14,8 @@ ULTRASONIC_TRIGGER_PIN = 24
 PIR_MOTION_PIN = 14
 
 # TODO: What should these pins be
-SPIN_MOTOR_PIN = 22
-DOOR_MOTOR_PIN = 30
+SPIN_MOTOR_PIN = 18
+DOOR_MOTOR_PIN = 27
 
 # used for averaging bin capacity
 usonic_distances = []
@@ -52,23 +41,23 @@ if __name__ == "__main__":
             print("Hand removed. Running sort logic")
             # Photo trash
             # Do AI stuff
-            bin = 2
+            bin = 2 # 0/1/2
 
             # Rotate to bin
-            spin_motor.set_angle(90 * bin)
+            spin_motor.set_angle(135 * bin)
                     
             # Open trapdoor
-            door_motor.set_angle(180)
+            door_motor.set_angle(0)
                     
             # Set ultrasonic bin & measure bin capacity
             usonic.bin = bin  # TODO: CHANGE THIS ACCORDINGLY
             usonic.update_fill_level(conn, usonic.getCapacity(usonic.run()))
 
             # Close trapdoor
-            door_motor.set_angle(0)
+            door_motor.set_angle(180 - 40)
 
             # Rotate backto original pos
-            spin_motor.set_angle(0)
+            spin_motor.set_angle(135)
             time.sleep(1)
 
 
