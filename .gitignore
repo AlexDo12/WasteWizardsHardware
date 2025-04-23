@@ -1,2 +1,7 @@
 CustomModel/trashnet+compost/
 CustomModel/split/
+NewModel/trashnet+compost/
+*/__pycache__
+NewModel/test_data/
+NewModel/justrecycling/
+NewModel/test_recycling
