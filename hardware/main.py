@@ -11,8 +11,17 @@ import openai
 from picamera2 import Picamera2
 import cv2, base64
 
+# Database upload
+import psycopg2
+from datetime import datetime, timezone
+
+USERNAME = "ritchey"
+TRASHCAN_ID = 1
+
+
 # TODO: CHANGE!! Directly embedding your key:
 openai.api_key = "INSERT KEY"
+
 ULTRASONIC_ECHO_PIN = 23
 ULTRASONIC_TRIGGER_PIN = 24
 PIR_MOTION_PIN = 14
@@ -115,6 +124,37 @@ if __name__ == "__main__":
             bin = 2
         elif classification == "no item":
             continue
+            
+        # Upload what we just classified into the database
+        try:
+            
+            with conn.cursor() as cur:
+                # Grab the next ID
+                cur.execute("""
+                    SELECT COALESCE(MAX(id), 0) + 1
+                    FROM waste_items
+                """)
+                next_id = cur.fetchone()[0]
+            
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO waste_items (id, waste_type, bin_number, time, username, trashcan)
+                    VALUES (%s,%s,%s,%s,%s,%s);
+                    """,
+                    (
+                        next_id,
+                        classification,
+                        bin,
+                        datetime.now(timezone.utc),
+                        USERNAME,
+                        TRASHCAN_ID
+                    )
+                )
+            conn.commit()
+            print("Logged item to waste_items.")
+        except Exception as e:
+            print(f"[DB‑insert] Error logging item: {e}")
 
         # Rotate to bin
         spin_motor.set_angle(135 * bin)

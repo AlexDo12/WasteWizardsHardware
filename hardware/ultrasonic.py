@@ -82,26 +82,3 @@ class Ultrasonic:
         for i in range(10):
             self.distances[i] = self._distance()
         return sum(self.distances)/len(self.distances)
-        
-
-# if __name__ == '__main__':
-#     conn = connect_db()
-#     setupUsonic()
-#     try:
-#         while True:
-#             dist = distance()
-#             capacity = 1 - (dist - 38) / 56
-#             capacity = max(0.0, min(1.0, capacity))  # Clamp to [0,1]
-#             print(f"Bin Capacity: {(capacity*100):.1f}%")
-#             if dist < 20:
-#                 print("Bin full!")
-
-#             if conn:
-#                 update_fill_level(conn, capacity)
-
-#             time.sleep(4)
-#     except KeyboardInterrupt:
-#         print("Measurement stopped by User")
-#         GPIO.cleanup()
-#         if conn:
-#             conn.close()
