@@ -1,10 +1,6 @@
 import RPi.GPIO as GPIO
 import time
 
-# Set up GPIO
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
 class servoMotor:
     def __init__(self, servo_pin: int, maxAngle: float):
         self.servo_pin = servo_pin
@@ -27,11 +23,15 @@ class servoMotor:
             return
 
         try:
+            # self.pwm.start(0)
             self.angle = angle
             duty = self._angle_to_duty_cycle(self.angle)
-            print(f"[Pin {self.servo_pin}] Moving to {angle}° → duty cycle {duty:.2f}%")
             self.pwm.ChangeDutyCycle(duty)
+            time.sleep(.5)
+            self.pwm.ChangeDutyCycle(0)
+            print(f"[Pin {self.servo_pin}] Moving to {angle}° → duty cycle {duty:.2f}%")
             time.sleep(1)
+            # self.pwm.stop()
         except Exception as e:
             print(f"[ERROR] Failed to set angle on pin {self.servo_pin}: {e}")
 
