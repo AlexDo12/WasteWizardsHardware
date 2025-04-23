@@ -8,13 +8,15 @@ from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
 import numpy as np
 import torchvision
-from torchvision import datasets, models, transforms
+from torchvision import datasets, models
+from torchvision.transforms import v2 as transforms
 import matplotlib.pyplot as plt
 import time
 import os
 from PIL import Image
 from tempfile import TemporaryDirectory
 from torch.utils.data import random_split, Subset
+import math
 
 def imshow(inp, title=None):
     """Display image for Tensor."""
@@ -103,6 +105,7 @@ def visualize_model(model, num_images=6):
     model.eval()
     images_so_far = 0
     fig = plt.figure()
+    fig.suptitle("Validation Results")
 
     with torch.no_grad():
         for i, (inputs, labels) in enumerate(dataloaders['val']):
@@ -123,24 +126,95 @@ def visualize_model(model, num_images=6):
                     model.train(mode=was_training)
                     return
         model.train(mode=was_training)
+    plt.show(block = True)
+
+def test_model(model, num_images=6):
+    was_training = model.training
+    model.eval()
+    images_so_far = 0
+    fig = plt.figure()
+    fig.suptitle("Testing Results")
+
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(dataloaders['test']):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+
+            for j in range(inputs.size()[0]):
+                images_so_far += 1
+                ax = plt.subplot(num_images//2, 2, images_so_far)
+                ax.axis('off')
+                ax.set_title(f'predicted: {class_names[preds[j]]}')
+                imshow(inputs.cpu().data[j])
+
+                if images_so_far == num_images:
+                    model.train(mode=was_training)
+                    return
+        model.train(mode=was_training)
+
+def visualize_model_predictions(model,img_paths):
+    was_training = model.training
+    model.eval()
+
+    images_so_far = 0
+    cols = 16
+    rows = math.ceil(len(img_paths) / cols)
+
+    plt.figure(figsize=(cols * 4, rows * 4))
+
+    for i, img_path in enumerate(img_paths):
+        img = Image.open(img_path).convert('RGB')
+        img_transformed = data_transforms['test'](img)
+        img_transformed = img_transformed.unsqueeze(0).to(device)
+
+        with torch.no_grad():
+            outputs = model(img_transformed)
+            _, preds = torch.max(outputs, 1)
+
+            ax = plt.subplot(rows, cols, i + 1)
+            ax.axis('off')
+            ax.set_title(f'Predicted: {class_names[preds[0]]}')
+            
+            # Show original (untransformed) image
+            ax.imshow(img)
+
+    plt.tight_layout()
+    plt.show()
+
+    model.train(mode=was_training)
 
 if __name__ == '__main__':
     TRAIN = True
+    model_name = "model3"
     cudnn.benchmark = True
     plt.ion()   # interactive mode
+
+    # Select CUDA on GPU
+    device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
+    print(f"Using {device} device")
 
 
     # Data augmentation and normalization for training
     # Just normalization for validation
     data_transforms = {
         'train': transforms.Compose([
-            transforms.CenterCrop(524),
+            transforms.RandomResizedCrop(480),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms.CenterCrop(524),
+            transforms.Resize(480),
+            transforms.CenterCrop(480),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ]),
+        'test': transforms.Compose([
+            transforms.Resize(480),
+            transforms.CenterCrop(480),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -151,26 +225,25 @@ if __name__ == '__main__':
                                             data_transforms[x])
                     for x in ['train', 'val']}
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
-                                                shuffle=True, num_workers=1)
+                                                shuffle=True, num_workers=0, pin_memory=True)
                 for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     class_names = image_datasets['train'].classes
 
-    # We want to be able to train our model on an `accelerator <https://pytorch.org/docs/stable/torch.html#accelerators>`__
-    # such as CUDA, MPS, MTIA, or XPU. If the current accelerator is available, we will use it. Otherwise, we use the CPU.
-
-    device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-    print(f"Using {device} device")
-
+    
+    # Visualize a set of the training data
     # Get a batch of training data & convert into grid
     inputs, classes = next(iter(dataloaders['train']))
     out = torchvision.utils.make_grid(inputs)
-
-    # Visualize a set of the training data
     imshow(out, title=[class_names[x] for x in classes])
     plt.show(block=True)
 
-    model_conv = torchvision.models.resnet50(weights='IMAGENET1K_V2')
+    # inputs, classes = next(iter(dataloaders['test']))
+    # out = torchvision.utils.make_grid(inputs)
+    # imshow(out, title=[class_names[x] for x in classes])
+    # plt.show(block=True)
+
+    model_conv = torchvision.models.resnet18(weights='IMAGENET1K_V1')
     for param in model_conv.parameters():
         param.requires_grad = False
 
@@ -189,16 +262,18 @@ if __name__ == '__main__':
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
 
     if TRAIN:
-        model_conv = train_model(model_conv, criterion, optimizer_conv, exp_lr_scheduler, num_epochs=12)
-        torch.save(model_conv.state_dict(), "C:/Users/Lovelace/Desktop/Waste Wizards/Project/CustomModel/model.pt")
+        model_conv = train_model(model_conv, criterion, optimizer_conv, exp_lr_scheduler, num_epochs=25)
+        torch.save(model_conv.state_dict(), "C:/Users/Lovelace/Desktop/Waste Wizards/Project/CustomModel/%s.pt" % (model_name))
 
     else:
-        model_conv.load_state_dict(torch.load("C:/Users/Lovelace/Desktop/Waste Wizards/Project/CustomModel/model.pt", weights_only = True))
+        model_conv.load_state_dict(torch.load("C:/Users/Lovelace/Desktop/Waste Wizards/Project/CustomModel/%s.pt" % (model_name), weights_only = True))
     
     visualize_model(model_conv)
 
-    plt.ioff()
-    plt.show()
+    test_model(model_conv, 6)
+    plt.show(block=True)
+
+
 
 
     
