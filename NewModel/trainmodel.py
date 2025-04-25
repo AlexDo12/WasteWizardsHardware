@@ -14,10 +14,8 @@ from torch.utils.data.dataloader import DataLoader
 
 from torchvision.utils import make_grid
 
-from modelBase import *
+from functions import *
 
-import onnx
-import onnx_tf
 
 def show_sample(img, label):
     print("Label:", dataset.classes[label], "(Class No: "+ str(label) + ")")
@@ -106,10 +104,10 @@ print(evaluate(model, val_dl))
 print(evaluate(model, test_dl))
 
 input_shape = (1, 3, 640, 480)
-torch.onnx.export(model, torch.randn(input_shape), 'model.onnx', opset_version=11)
- # Load  ONNX model
-onnx_model = onnx.load('model.onnx')
-# Convert ONNX model to TensorFlow format
-tf_model = onnx_tf.backend.prepare(onnx_model)
-# Export  TensorFlow  model 
-tf_model.export_graph("model1.tf")
+# torch.onnx.export(model, torch.randn(input_shape), 'model.onnx', opset_version=11)
+#  # Load  ONNX model
+# onnx_model = onnx.load('model.onnx')
+# # Convert ONNX model to TensorFlow format
+# tf_model = onnx_tf.backend.prepare(onnx_model)
+# # Export  TensorFlow  model 
+# tf_model.export_graph("model1.tf")
