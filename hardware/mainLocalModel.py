@@ -13,6 +13,8 @@ import numpy as np
 # Database upload
 import psycopg2
 from datetime import datetime, timezone
+from lobe import ImageModel
+from PIL import Image
 
 USERNAME = "ritchey"
 TRASHCAN_ID = 1
@@ -26,6 +28,8 @@ DOOR_MOTOR_PIN = 27
 # --- Baseline reference image -------------------------------------------------
 BASELINE_IMAGE_PATH = "nothing.jpg"  # image of an empty drop-off surface
 BASELINE_THRESHOLD = 0.02            # 2 % pixel-difference threshold
+
+model = ImageModel.load("/home/waste/Desktop/Lobe Model/LobeV1_Trashnet")
 
 def _load_baseline():
     """Load and downscale the baseline reference image once at startup."""
@@ -49,7 +53,7 @@ def classify_trash(waste_types):
     """Capture an image, compare with baseline, and classify using GPT."""
     # 1) Configure camera for full-HD
     cam = Picamera2()
-    cam.configure(cam.create_still_configuration(main={"size": (1920, 1080)}))
+    cam.configure(cam.create_still_configuration(main={"size": (1640, 1232)}))
     try:
         cam.start()
         time.sleep(2)  # allow auto-exposure / AWB to settle
@@ -71,37 +75,8 @@ def classify_trash(waste_types):
                 return "no item"
         # ----------------------------------------------------------------------
 
-        cv2.imwrite("trash.jpg", small)           # saved in current dir
-        # Base64 encode:
-        _, buf = cv2.imencode('.jpg', small, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-        b64 = base64.b64encode(buf).decode("utf-8")
-
-        # 3) Build GPT prompt
-        valid_waste_types_str = ", ".join(waste_types)
-        system_prompt = (
-            "You are a waste-sorting vision assistant.\n"
-            "You will be shown an image captured above a trash drop-off platform.\n"
-            "Classify the dominant object into exactly one of the following categories: " + valid_waste_types_str + ".\n"
-            "If the object definitively does not belong to any category, respond with 'unknown'.\n"
-            "If the platform is empty (bare wood) respond with 'null'.\n"
-            "Respond with **only** the single word — no punctuation or additional text."
-        )
-
-        resp = openai.chat.completions.create(
-            model="gpt-4o-mini",   # lighter / cheaper model
-            messages=[
-                {"role": "system",  "content": system_prompt},
-                {"role": "user", "content": [
-                    {"type": "text", "text": "Here is the image — what is on the platform?"},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-                ]}
-            ],
-            max_tokens=10,
-            temperature=0
-        )
-
-        full = resp.choices[0].message.content.strip().lower()
-        print("Full GPT reply:", full)
+        
+        
 
         valid_responses = waste_types + ["unknown", "null"]
         return full if full in valid_responses else "trash"  # Default to trash if GPT returns something unexpected

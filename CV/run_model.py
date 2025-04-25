@@ -19,7 +19,7 @@ picam2.configure("preview")
 picam2.start()
 
 # Load the YOLO11 model
-model = ImageModel.load("/home/waste/Desktop/Lobe Model/LobeV1_Trashnet")
+model = ImageModel.load("/home/alex/Documents/Capstone/WasteWizardHardware/CV/LobeV1_Trashnet")
 
 while True:
     # Capture frame-by-frame and downsample to target size
