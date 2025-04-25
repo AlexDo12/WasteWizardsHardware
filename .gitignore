@@ -5,3 +5,4 @@ NewModel/trashnet+compost/
 NewModel/test_data/
 NewModel/justrecycling/
 NewModel/test_recycling
+.env

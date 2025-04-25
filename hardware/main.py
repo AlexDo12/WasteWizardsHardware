@@ -13,13 +13,20 @@ import numpy as np
 # Database upload
 import psycopg2
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+import os
+
+load_dotenv()                    # looks for a .env file if it exists
+try:
+    openai.api_key = os.environ["OPENAI_API_KEY"]
+except KeyError:
+    raise RuntimeError(
+        "OPENAI_API_KEY not set. Export it or put it in a .env file "
+        "(never commit that file)."
+    )
 
 USERNAME = "ritchey"
 TRASHCAN_ID = 1
-
-# TODO: CHANGE!! Directly embedding your key:
-
-
 ULTRASONIC_ECHO_PIN = 23
 ULTRASONIC_TRIGGER_PIN = 24
 PIR_MOTION_PIN = 14
