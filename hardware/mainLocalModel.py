@@ -17,9 +17,6 @@ from datetime import datetime, timezone
 USERNAME = "ritchey"
 TRASHCAN_ID = 1
 
-# TODO: CHANGE!! Directly embedding your key:
-
-
 ULTRASONIC_ECHO_PIN = 23
 ULTRASONIC_TRIGGER_PIN = 24
 PIR_MOTION_PIN = 14

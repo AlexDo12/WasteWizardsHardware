@@ -19,7 +19,7 @@ def main() -> None:
     try:
         # Start at 0 °
         print("Moving to 0°")
-        door.set_angle(38)
+        door.set_angle(68)
         time.sleep(1)          # pause so you can see the motion
 
         # Swing to 180 °
@@ -29,7 +29,7 @@ def main() -> None:
 
         # Return to 0 °
         print("Returning to 0°")
-        door.set_angle(38)
+        door.set_angle(68)
         time.sleep(1)
 
     finally:
