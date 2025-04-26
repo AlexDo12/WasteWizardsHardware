@@ -1,6 +1,3 @@
-# main.py
-# WasteWizardHardware — added baseline comparison to reduce false positives
-
 from ultrasonic import Ultrasonic
 from motor import servoMotor
 import time
@@ -33,7 +30,6 @@ PIR_MOTION_PIN = 14
 SPIN_MOTOR_PIN = 18
 DOOR_MOTOR_PIN = 27
 
-# --- Baseline reference image -------------------------------------------------
 BASELINE_IMAGE_PATH = "nothing.jpg"  # image of an empty drop-off surface
 BASELINE_THRESHOLD = 0.02            # 2 % pixel-difference threshold
 
@@ -51,7 +47,6 @@ def _load_baseline():
 
 BASELINE_IMAGE = _load_baseline()
 
-# ------------------------------------------------------------------------------
 # used for averaging bin capacity
 usonic_distances = []
 
@@ -85,16 +80,17 @@ def classify_trash(waste_types):
         # Base64 encode:
         _, buf = cv2.imencode('.jpg', small, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
         b64 = base64.b64encode(buf).decode("utf-8")
-
         # 3) Build GPT prompt
         valid_waste_types_str = ", ".join(waste_types)
+        print("types", valid_waste_types_str)
         system_prompt = (
             "You are a waste-sorting vision assistant.\n"
             "You will be shown an image captured above a trash drop-off platform.\n"
             "Classify the dominant object into exactly one of the following categories: " + valid_waste_types_str + ".\n"
-            "If the object definitively does not belong to any category, respond with 'unknown'.\n"
+            # "If the object definitively does not belong to any category, respond with 'trash'.\n"
             "If the platform is empty (bare wood) respond with 'null'.\n"
-            "Respond with **only** the single word — no punctuation or additional text."
+            "if there is an item in it always classify it as somthing never null"
+            "Respond with **only** the single word — no punctuation or additional text. "
         )
 
         resp = openai.chat.completions.create(
@@ -102,11 +98,11 @@ def classify_trash(waste_types):
             messages=[
                 {"role": "system",  "content": system_prompt},
                 {"role": "user", "content": [
-                    {"type": "text", "text": "Here is the image — what is on the platform?"},
+                    {"type": "text", "text": "Here is the image — what is on the platform? the only valid responses are null," + valid_waste_types_str + ", if you see a black object its trash"},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
                 ]}
             ],
-            max_tokens=10,
+            max_tokens=1000,
             temperature=0
         )
 
